@@ -5,9 +5,10 @@ dotenv.config();
 
 const app = express();
 
-
+// Middlewares
 app.use(express.json());
 
+// Configurations
 const PORT = process.env.PORT || 5001;
 
 async function initDatabase() {
@@ -29,7 +30,7 @@ async function initDatabase() {
     }
 }
 
-
+// Endpoints
 app.get('/api/transactions/:user_id', async (req, res) => {
     try {
         const { user_id } = req.params
@@ -43,7 +44,6 @@ app.get('/api/transactions/:user_id', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 })
-
 
 app.delete('/api/transactions/:id', async (req, res) => {
 
@@ -90,6 +90,34 @@ app.post('/api/transactions', async (req, res) => {
     }
 })
 
+app.get('/api/transactions/summary/:user_id', async (req, res) => {
+    try {
+
+        const { user_id } = req.params;
+
+        const balanceResult = await sql`
+        SELECT COALESCE(SUM(amount), 0) AS balance FROM transactions WHERE user_id = ${user_id}
+        `;
+
+        const incomeResult = await sql`
+        SELECT COALESCE(SUM(amount), 0) AS income FROM transactions WHERE user_id = ${user_id} AND amount > 0 
+        `;
+
+        const expenseResult = await sql`
+        SELECT COALESCE(SUM(amount), 0) AS expense FROM transactions WHERE user_id = ${user_id} AND amount < 0 
+        `;
+
+        res.status(200).json({
+            balance: balanceResult[0].balance,
+            income: incomeResult[0].income,
+            expense: expenseResult[0].expense
+        })
+
+    } catch (error) {
+        console.error('Error getting the summary:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
 
 
 initDatabase().then(() => {
