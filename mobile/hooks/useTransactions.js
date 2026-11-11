@@ -1,14 +1,21 @@
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 
+// For Localhost testing
 // const API_URL = "http://localhost:5001/api";
+
+// For Android emulator
 const API_URL = "http://10.0.2.2:5001/api";
+
+// For Published Replit API
+// const API_URL = "http://434f11e5-7cd1-4d7b-ba0c-64cf4aa4c2ca-00-1ajboth9g0unw.kirk.replit.dev/api";
+
 
 export const useTransactions = (userId) => {
 
     const [transactions, setTransactions] = useState([]);
     const [summary, setSummary] = useState(
-        { balance: 0, income: 0, expenses: 0 }
+        { balance: 0, income: 0, expense: 0 }
     );
 
     const [isLoading, setIsLoading] = useState(true);
