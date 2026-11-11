@@ -20,7 +20,7 @@ app.use('/api/transactions', transactionsRouter);
 
 // Start Server
 initDatabase().then(() => {
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on port ${PORT}`);
     })
 }); 
