@@ -1,41 +1,6 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import { sql } from './config/db.js';
-import rateLimiter from './middleware/rateLimiter.js';
-dotenv.config();
+import { sql } from '../config/db.js';
 
-const app = express();
-
-// Middlewares
-app.use(rateLimiter);
-app.use(express.json());
-
-
-
-// Configurations
-const PORT = process.env.PORT || 5001;
-
-async function initDatabase() {
-    try {
-        await sql`CREATE TABLE IF NOT EXISTS transactions(
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        amount DECIMAL(10, 2) NOT NULL,
-        category VARCHAR(100) NOT NULL,
-        created_at DATE NOT NULL DEFAULT CURRENT_DATE
-        )`;
-
-        console.log('Database initialized successfully');
-
-    } catch (error) {
-        console.error('Error initializing database:', error);
-        process.exit(1);
-    }
-}
-
-// Endpoints
-app.get('/api/transactions/:user_id', async (req, res) => {
+export async function getTransactionsByUserId(req, res) {
     try {
         const { user_id } = req.params
 
@@ -47,10 +12,9 @@ app.get('/api/transactions/:user_id', async (req, res) => {
         console.error('Error getting the transactions:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-})
+}
 
-app.delete('/api/transactions/:id', async (req, res) => {
-
+export async function deleteTransactionById(req, res) {
     try {
 
         const { id } = req.params;
@@ -71,9 +35,9 @@ app.delete('/api/transactions/:id', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 
-})
+}
 
-app.post('/api/transactions', async (req, res) => {
+export async function createTransaction(req, res) {
     try {
         const { user_id, title, amount, category } = req.body;
 
@@ -82,19 +46,19 @@ app.post('/api/transactions', async (req, res) => {
         }
 
         const transaction = await sql`
-        INSERT INTO transactions(user_id, title, amount, category)
-        VALUES(${user_id}, ${title}, ${amount}, ${category})
-        RETURNING *;
-        `
+         INSERT INTO transactions(user_id, title, amount, category)
+         VALUES(${user_id}, ${title}, ${amount}, ${category})
+         RETURNING *;
+         `
         res.status(201).json(transaction[0]);
 
     } catch (error) {
         console.error('Error creating transaction:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-})
+}
 
-app.get('/api/transactions/summary/:user_id', async (req, res) => {
+export async function getTransactionSummaryByUserId(req, res) {
     try {
 
         const { user_id } = req.params;
@@ -121,11 +85,4 @@ app.get('/api/transactions/summary/:user_id', async (req, res) => {
         console.error('Error getting the summary:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
-})
-
-
-initDatabase().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    })
-});
+}
